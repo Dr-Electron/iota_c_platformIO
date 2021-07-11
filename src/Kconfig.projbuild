@@ -18,6 +18,12 @@ menu "IOTA Wallet Settings"
         help
             Set the port number of endpoint
 
+    config NODE_TLS
+        bool "Activate TLS"
+        default false
+        help
+            Activate TLS
+
     config WIFI_SSID
         string "WiFi SSID"
         default "myssid"

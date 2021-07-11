@@ -22,6 +22,12 @@
 #include "client/api/v1/send_message.h"
 #include "wallet/wallet.h"
 
+#ifdef CONFIG_NODE_TLS
+#define TLS_ENABLED true
+#else
+#define TLS_ENABLED false
+#endif
+
 static const char *TAG = "wallet";
 
 iota_wallet_t *wallet = NULL;
@@ -258,6 +264,7 @@ static int fn_send_msg(int argc, char **argv) {
   int err = 0;
   uint64_t balance = 0;
   char data[] = "sent from esp32 via iota.c";
+  char msg_id[IOTA_MESSAGE_ID_HEX_BYTES + 1] = {};
   int nerrors = arg_parse(argc, argv, (void **)&send_msg_args);
   byte_t recv[IOTA_ADDRESS_BYTES] = {};
   if (nerrors != 0) {
@@ -282,11 +289,12 @@ static int fn_send_msg(int argc, char **argv) {
   }
 
   err = wallet_send(wallet, (uint32_t)send_msg_args.sender->dval[0], recv + 1, balance, "ESP32\xF0\x9F\x8D\xBB",
-                    (byte_t *)data, sizeof(data));
+                    (byte_t *)data, sizeof(data), msg_id, sizeof(msg_id));
   if (err) {
     printf("send message failed\n");
     return -1;
   }
+  printf("Message ID: %s\n", msg_id);
 
   return 0;
 }
@@ -333,7 +341,7 @@ int init_wallet() {
   if (strcmp(CONFIG_WALLET_SEED, "random") == 0) {
     random_seed(seed);
   } else {
-    hex2bin(CONFIG_WALLET_SEED, strlen(CONFIG_WALLET_SEED), seed, sizeof(seed));
+    hex_2_bin(CONFIG_WALLET_SEED, strlen(CONFIG_WALLET_SEED), seed, sizeof(seed));
   }
 
   wallet = wallet_create(seed, "m/44'/4218'/0'/0'");
@@ -341,7 +349,7 @@ int init_wallet() {
     ESP_LOGE(TAG, "wallet create failed\n");
     return -1;
   }
-  wallet_set_endpoint(wallet, CONFIG_NODE_ENDPOINT, CONFIG_NODE_PORT);
+  wallet_set_endpoint(wallet, CONFIG_NODE_ENDPOINT, CONFIG_NODE_PORT, TLS_ENABLED);
   // get balance
   wallet_balance_by_index(wallet, 0, &balance);
   printf("balance on address [0]: ");

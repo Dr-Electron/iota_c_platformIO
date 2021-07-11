@@ -140,7 +140,7 @@ static void initialize_console() {
   /* Configure UART. Note that REF_TICK is used so that the baud rate remains
    * correct while APB frequency is changing in light sleep mode.
    */
-  const uart_config_t uart_config = {.baud_rate = CONFIG_CONSOLE_UART_BAUDRATE,
+  const uart_config_t uart_config = {.baud_rate = CONFIG_ESP_CONSOLE_UART_BAUDRATE,
                                      .data_bits = UART_DATA_8_BITS,
                                      .parity = UART_PARITY_DISABLE,
                                      .stop_bits = UART_STOP_BITS_1,
